@@ -1,11 +1,14 @@
 #Cleaning Nashville Housing Data using SQL Queries#
 /#
 
+
 Test database dbo.nashville_housing
 Select *
 From Housing.dbo.Nashville_Housing
 
+
 1. #Standardize Datetime Format#
+
 Select Convert(Date, SaleDate) 
 From Housing.dbo.Nashville_Housing
 
@@ -18,7 +21,7 @@ Set Sale_Date=Convert(Date, Saledate)
 Alter Table Housing.dbo.Nashville_Housing
 Drop Column SaleDate
 
-2. #Populate property address data using parcelid to take care of null values#
+2. #Populate property address data using parcelid to replace null values#
 Select *
 From Housing.dbo.Nashville_Housing
 order by ParcelID
@@ -32,6 +35,7 @@ Join Housing.dbo.Nashville_Housing b
 	And a.UniqueId <>b.UniqueID
 Where a.propertyaddress is null
 
+
 Update a
 Set PropertyAddress = ISNULL(a.propertyaddress,b.PropertyAddress)
 From Housing.dbo.Nashville_Housing a
@@ -40,51 +44,64 @@ Join Housing.dbo.Nashville_Housing b
 	And a.UniqueId <>b.UniqueID
 Where a.propertyaddress is null
 
-#Using Substring and Character Index to spli street number from city#
+
+#Using Substring and Character Index to split street number from PropertyAddres#
 
 Select Propertyaddress
 From Housing.dbo.Nashville_Housing
+
 
 Select 
 Substring(propertyaddress,1,Charindex(',', propertyaddress)) as Streetaddress
 ,Charindex(',', propertyaddress)
 From Housing.dbo.Nashville_Housing
 
+
 Select 
 Substring(propertyaddress,1,Charindex(',', propertyaddress)-1) as Streetaddress
 ,Substring(propertyaddress,Charindex(',', propertyaddress)+1,Len(propertyaddress)) as City
 From Housing.dbo.Nashville_Housing
 
+
 Alter Table Housing.dbo.Nashville_Housing
 Add PropertyStreetAddress nvarchar(255)
+
 
 Update Housing.dbo.Nashville_Housing
 Set PropertyStreetAddress = Substring(propertyaddress,1,Charindex(',', propertyaddress)-1)
 
+
 Alter Table Housing.dbo.Nashville_Housing
 Add PropertyCity nvarchar(255)
+
 
 Update Housing.dbo.Nashville_Housing
 Set PropertyCity= Substring(propertyaddress,Charindex(',', propertyaddress)+1,Len(propertyaddress))
 
+
 Select *
 From Housing.dbo.Nashville_Housing
+
 
 #Owner Address#
 Select Owneraddress
 From Housing.dbo.Nashville_Housing
 
+
 Select
 Parsename(Replace(Owneraddress, ',', '.'),3) as Ownerstreetaddress
 From Housing.dbo.Nashville_Housing
+
 
 Select
 Parsename(Replace(Owneraddress, ',', '.'),2) as OwnerCity
 From Housing.dbo.Nashville_Housing
 
+
 Select
 Parsename(Replace(Owneraddress, ',', '.'),1) as Ownerstate
 From Housing.dbo.Nashville_Housing
+
 
 Alter Table Housing.dbo.Nashville_Housing
 Add OwnerStreetAddress nvarchar(255)
@@ -104,10 +121,12 @@ Add OwnerState nvarchar(255)
 Update Housing.dbo.Nashville_Housing
 Set OwnerState=Parsename(Replace(Owneraddress, ',', '.'),1)
 
+
 Select *
 From Housing.dbo.Nashville_Housing
 
-#3. Standardize SoldasVacant column by replacing 'Y' and 'N'with 'Yes' and 'No'#
+
+3. #Standardize SoldasVacant column by replacing 'Y' and 'N'with 'Yes' and 'No'#
 
 Select Distinct(Soldasvacant), Count(Soldasvacant)
 From Housing.dbo.Nashville_Housing
@@ -127,7 +146,7 @@ Set Soldasvacant =  Case When Soldasvacant = 'Y' THEN 'Yes'
 	   Else Soldasvacant
 	   End
 
-#4. Removing Duplicates just to exhibit skills#
+4. #Removing Duplicates just to exhibit skills#
 
 With RowNumberCTE AS(
 Select *,
@@ -170,7 +189,8 @@ From RowNumberCTE
 Where Row_num > 1
 Order By PropertyAddress
 
-#5. Deleting unused columns just to exhibit skills#
+
+5. #Deleting unused columns just to exhibit skills#
 Select *
 From Housing.dbo.Nashville_Housing
 
